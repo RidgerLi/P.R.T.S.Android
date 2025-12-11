@@ -1,0 +1,56 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+# Local configuration
+local.properties
+*.iml
+
+# IDE files
+.idea/
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# Android specific
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keystore (千万不要把签名文件传上去)
+*.keystore
+*.jks
+
+# APK / bundle 输出
+*.apk
+*.ap_
+*.aab
+
+# 其它缓存
+/.cache/
+/out/

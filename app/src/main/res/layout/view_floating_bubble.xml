@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bubbleRoot"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/bubbleIcon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_floating_circle"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_mic"
+        android:alpha="1.0" />
+
+</FrameLayout>
