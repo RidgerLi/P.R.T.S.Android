@@ -52,6 +52,8 @@ class VoiceForegroundService : Service() {
         private const val SAMPLE_RATE = 16000
         private const val CHANNELS = 1
         private const val BITS_PER_SAMPLE = 16
+        private const val PREFS_NAME = "prts_prefs"
+        private const val KEY_USER_ID = "user_id"
     }
     private enum class AssistantState {
         IDLE,           // 停止监听
@@ -362,6 +364,9 @@ class VoiceForegroundService : Service() {
 
     private suspend fun sendWavToBackend(wavBytes: ByteArray): ByteArray? {
         return try {
+            val sp = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            val userId = sp.getString(KEY_USER_ID, "1") ?: "1"
+            val userIdInt = userId.toIntOrNull() ?: 1
             val body = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart(
@@ -369,7 +374,7 @@ class VoiceForegroundService : Service() {
                     "audio.wav",
                     wavBytes.toRequestBody("audio/wav".toMediaType())
                 )
-                .addFormDataPart("user_id", "1")
+                .addFormDataPart("user_id", userIdInt.toString())
                 .build()
 
             val request = Request.Builder()

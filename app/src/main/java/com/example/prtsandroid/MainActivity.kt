@@ -23,6 +23,11 @@ import com.example.prtsandroid.ui.theme.PRTSAndroidTheme
 
 class MainActivity : ComponentActivity() {
 
+    companion object {
+        private const val PREFS_NAME = "prts_prefs"
+        private const val KEY_USER_ID = "user_id"
+    }
+
     private val recordAudioPermission = Manifest.permission.RECORD_AUDIO
 
     private val requestRecordAudioPermission =
@@ -38,9 +43,30 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    // SharedPreferences
+                    val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+                    // 读本地已保存的 user_id（第一次可能是空字符串）
+                    var userId by remember {
+                        mutableStateOf(prefs.getString(KEY_USER_ID, "") ?: "")
+                    }
+
                     MainScreen(
+                        userId = userId,
+                        onUserIdChange = { newId ->
+                            userId = newId
+                        },
                         onStartServiceClick = {
-                            ensurePermissionsAndStartService()
+                            // 启动前先把 userId 保存一下
+                            if (userId.isNotBlank()) {
+                                prefs.edit().putString(KEY_USER_ID, userId.trim()).apply()
+                                ensurePermissionsAndStartService()
+                            } else {
+                                // 简单提醒一下
+                                android.widget.Toast
+                                    .makeText(this, "先填一个 user_id 再启动吧～", android.widget.Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         },
                         onStopServiceClick = {
                             stopVoiceService()
@@ -53,6 +79,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     private fun ensurePermissionsAndStartService() {
         // 1. 录音权限
@@ -99,6 +126,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(
+    userId: String,
+    onUserIdChange: (String) -> Unit,
     onStartServiceClick: () -> Unit,
     onStopServiceClick: () -> Unit,
     onOpenOverlaySettingsClick: () -> Unit
@@ -111,6 +140,17 @@ fun MainScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("陪伴监督 AI · 测试面板")
+
+        Spacer(Modifier.height(16.dp))
+        // 👉 用户 ID 输入框
+        androidx.compose.material3.OutlinedTextField(
+            value = userId,
+            onValueChange = onUserIdChange,
+            label = { Text("用户 ID") },
+            placeholder = { Text("给自己取个 id，比如 1001") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(Modifier.height(16.dp))
 
