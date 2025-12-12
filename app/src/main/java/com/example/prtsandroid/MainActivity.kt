@@ -26,6 +26,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val PREFS_NAME = "prts_prefs"
         private const val KEY_USER_ID = "user_id"
+        private const val KEY_BASE_URL = "base_url"
+
+        private const val DEFAULT_BASE_URL = "http://124.222.58.189:8000/"
     }
 
     private val recordAudioPermission = Manifest.permission.RECORD_AUDIO
@@ -50,23 +53,30 @@ class MainActivity : ComponentActivity() {
                     var userId by remember {
                         mutableStateOf(prefs.getString(KEY_USER_ID, "") ?: "")
                     }
+                    var baseUrl by remember {
+                        mutableStateOf(prefs.getString(KEY_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL)
+                    }
 
                     MainScreen(
                         userId = userId,
+                        baseUrl = baseUrl,
+                        onBaseUrlChange = { baseUrl = it },
                         onUserIdChange = { newId ->
                             userId = newId
                         },
                         onStartServiceClick = {
-                            // 启动前先把 userId 保存一下
-                            if (userId.isNotBlank()) {
-                                prefs.edit().putString(KEY_USER_ID, userId.trim()).apply()
-                                ensurePermissionsAndStartService()
-                            } else {
-                                // 简单提醒一下
-                                android.widget.Toast
-                                    .makeText(this, "先填一个 user_id 再启动吧～", android.widget.Toast.LENGTH_SHORT)
-                                    .show()
-                            }
+                            val u = userId.trim()
+                            val b = baseUrl.trim().ifEmpty { DEFAULT_BASE_URL }
+
+                            // 简单规范：确保以 / 结尾，避免拼接出错
+                            val normalizedBaseUrl = if (b.endsWith("/")) b else "$b/"
+
+                            prefs.edit()
+                                .putString(KEY_USER_ID, u)
+                                .putString(KEY_BASE_URL, normalizedBaseUrl)
+                                .apply()
+
+                            ensurePermissionsAndStartService()
                         },
                         onStopServiceClick = {
                             stopVoiceService()
@@ -128,6 +138,8 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     userId: String,
     onUserIdChange: (String) -> Unit,
+    baseUrl: String,
+    onBaseUrlChange: (String) -> Unit,
     onStartServiceClick: () -> Unit,
     onStopServiceClick: () -> Unit,
     onOpenOverlaySettingsClick: () -> Unit
@@ -148,6 +160,16 @@ fun MainScreen(
             onValueChange = onUserIdChange,
             label = { Text("用户 ID") },
             placeholder = { Text("给自己取个 id，比如 1001") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(16.dp))
+        androidx.compose.material3.OutlinedTextField(
+            value = baseUrl,
+            onValueChange = onBaseUrlChange,
+            label = { Text("服务器地址 Base URL") },
+            placeholder = { Text("例如：http://124.222.58.189:8000/") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )

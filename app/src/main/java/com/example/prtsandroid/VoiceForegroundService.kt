@@ -44,15 +44,16 @@ class VoiceForegroundService : Service() {
         const val ACTION_STOP = "com.example.prtsandroid.action.STOP"
         const val ACTION_TOGGLE_LISTENING = "com.example.prtsandroid.action.TOGGLE_LISTENING"
 
-        // 换成你自己的后端地址
-        private const val BASE_URL = "http://192.168.31.99:8000"
-        private const val VOICE_CHAT_PATH = "/ai/audio_chat"
+        private const val PREFS_NAME = "prts_prefs"
+        private const val KEY_BASE_URL = "base_url"
+        private const val DEFAULT_BASE_URL = "http://124.222.58.189:8000/"
+        private const val VOICE_CHAT_PATH = "ai/audio_chat"  // 不要带前导 /
+
 
         // 音频参数，要和 VadRecorder 保持一致
         private const val SAMPLE_RATE = 16000
         private const val CHANNELS = 1
         private const val BITS_PER_SAMPLE = 16
-        private const val PREFS_NAME = "prts_prefs"
         private const val KEY_USER_ID = "user_id"
     }
     private enum class AssistantState {
@@ -377,8 +378,12 @@ class VoiceForegroundService : Service() {
                 .addFormDataPart("user_id", userIdInt.toString())
                 .build()
 
+            val baseUrl = (sp.getString(KEY_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL).trim()
+
+            val normalizedBaseUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+            val fullUrl = normalizedBaseUrl + VOICE_CHAT_PATH
             val request = Request.Builder()
-                .url(BASE_URL + VOICE_CHAT_PATH)
+                .url(fullUrl)
                 .post(body)
                 .build()
 
