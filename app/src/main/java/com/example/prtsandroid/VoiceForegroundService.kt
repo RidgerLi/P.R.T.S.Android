@@ -230,6 +230,7 @@ class VoiceForegroundService : Service() {
         }
 
         windowManager?.addView(floatingView, layoutParams)
+        currentState = AssistantState.IDLE
     }
 
     private fun hideFloatingBubble() {
@@ -256,10 +257,9 @@ class VoiceForegroundService : Service() {
         }
     }
 
-
-
     private fun startListeningInternal() {
         if (vadRecorder?.isRunning() == true) return
+        cancelIdleTimeoutTimer()
 
         updateNotification("正在聆听中…")
 
@@ -323,6 +323,7 @@ class VoiceForegroundService : Service() {
         vadRecorder = null
 
         cancelIdleTimeoutTimer()
+        currentState = AssistantState.IDLE
     }
 
     private fun stopListeningWithError(message: String, t: Throwable? = null) {
@@ -337,9 +338,6 @@ class VoiceForegroundService : Service() {
         // 切换到错误状态（图标变红）
         currentState = AssistantState.ERROR
     }
-
-
-
 
     // ================== 一句语音的处理：PCM -> WAV -> 后端 -> MP3 播放 ==================
 
@@ -515,7 +513,7 @@ class VoiceForegroundService : Service() {
 
     // 在 AI 播放完、重新开始监听后调用：
     // 如果 200s 内用户没再说话，就自动关闭监听
-    private fun startIdleTimeoutTimer(timeoutMs: Long = 200_000L) {
+    private fun startIdleTimeoutTimer(timeoutMs: Long = 30_000L) {
         idleTimeoutJob?.cancel()
 
         idleTimeoutJob = serviceScope.launch {
@@ -529,7 +527,7 @@ class VoiceForegroundService : Service() {
                     stopListeningInternal()   // 你已经有这个函数，会停掉 VAD 并更新通知
                     isListening = false
                     // 如果用了状态机的话：
-                    // currentState = AssistantState.IDLE
+                     currentState = AssistantState.IDLE
                 }
             }
         }
